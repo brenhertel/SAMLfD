@@ -155,7 +155,41 @@ def LTE_ND(org_traj, constraints, index):
     
     new_traj = np.linalg.lstsq(L, delta)
     return new_traj
-
+    
+def LTE_ND_any_constraints(org_traj, constraints, index):
+    
+    fixedWeight = 1e9
+    
+    
+    (nbNodes, nbDims) = np.shape(org_traj)
+    L = 2.*np.diag(np.ones((nbNodes,))) - np.diag(np.ones((nbNodes-1,)),1) - np.diag(np.ones((nbNodes-1,)),-1)
+    L[0,1] = -2.
+    L[-1,-2] = -2.
+    L = L / 2.
+    
+    #not how it works in above code
+    delta = np.matmul(L, org_traj)
+    
+    ##assume boundcond 0 
+    #L = np.delete(L, 0, 0)
+    #L = np.delete(L, np.size(L, 0) - 1, 0)
+    #delta = np.delete(delta, 0, 0)
+    #delta = np.delete(delta, np.size(delta, 0) - 1, 0)
+      
+    #current only implemented for 1 constraint
+    to_append_L = np.zeros((len(index), nbNodes))
+    for i in range(len(index)):
+        to_append_L[[i], index[i]] = fixedWeight
+        to_append_delta = fixedWeight * constraints[i]
+        delta = np.vstack((delta, to_append_delta))
+    print(np.shape(L))
+    L = np.vstack((L, to_append_L))
+    print(np.shape(L))
+    print(np.shape(delta))
+    new_traj, _, _, _ = np.linalg.lstsq(L, delta)
+    print(np.shape(new_traj))
+    return new_traj
+    
 #in-file testing
 def main():
   hLTE = LTE(np.ones((1, 5)))

@@ -54,6 +54,7 @@ class JA(object):
     self.method = given_method
     
   def generateTraj(self):
+    solution = []
     for di in range (self.dims):
       #set up interpolated cubic spline over the time data to estimate function values
       F = InterpolatedUnivariateSpline(self.tt, self.traj[:, di], k=3)
@@ -116,8 +117,9 @@ class JA(object):
         if sol.status != 0:
           print("WARNING: sol.status is %d" % sol.status)
           print(sol.message)
+      solution.append(sol.y[0])
     #this implementation is only valid for 1D trajectories. If give >1D trajectory, change the return value
-    return sol.y[0]
+    return solution
 
 #function to be called from a different file, sets up the fixed points correctly
 def generate_ja_fixed_points(positions, velocities=0, accelerations=0):
@@ -159,6 +161,34 @@ def perform_ja_improved(traj, initial=[], end=[], lmbda=-1.0):
   ja_traj = np.reshape(ja_traj, np.size(traj))
   #print(ja_traj[0])
   return ja_traj
+
+def perform_ja_general(org_traj, constraints, index, lmbda=-1.0):
+    pts, dims = np.shape(org_traj)
+    for i in range (dims):
+        for ind in range(len(index)):
+            if (index[ind] == 0):
+                init = constraints[ind, i]
+            elif (index[ind] != pts - 1) or (index[ind] != -1):
+                end = constraints[ind, i]
+            else:
+                print('WARNING: This implementation of JA cannot via-point deform! Constraint not included.')
+        
+        print('Initial Constriaint')
+        print(init)
+        print('End Constraint')
+        print(end)
+        
+        ntraj = np.reshape(org_traj[:, i], (1, pts))
+        ja_traj = perform_ja_improved(ntraj, initial=init, end=end, lmbda=lmbda)
+        if (i == 0):
+            out_traj = ja_traj
+        else:
+            out_traj = np.vstack((out_traj, ja_traj))
+    print(np.shape(out_traj))
+    out_traj = np.transpose(out_traj)
+    print(np.shape(out_traj))
+    #input()
+    return out_traj
 
 #in-file testing
 def main():
