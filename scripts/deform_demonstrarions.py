@@ -15,7 +15,9 @@ import perform_dmp as dmp
 import os
 
 
-fnames = ['21_10', '23_28', '32_45', '36_56', '42_36', '45_33', '49_47', '53_56', '56_47']
+#fnames = ['21_10', '23_28', '32_45', '36_56', '42_36', '45_33', '49_47', '53_56', '56_47']
+fnames = ['32_45']
+
 
 fname_start = 'C:/Users/BH/Documents/GitHub/Pearl-ur5e_matlab-implementations/h5 files/mlfd_demo/bad preprocessed recorded_demo Fri Jul  3 14_'
 fname_end = ' 2020.h5'
@@ -62,18 +64,18 @@ def main():
         my_mlfd.add_representation(lte.LTE_ND_any_constraints, 'LTE')
         my_mlfd.add_representation(dmp.perform_dmp_general, 'DMP')
         my_mlfd.add_metric(similaritymeasures.frechet_dist, is_dissim=True)
-        my_mlfd.create_grid()
-        my_mlfd.deform_traj()
-        my_mlfd.calc_similarities()
-        my_mlfd.save_to_h5(filename=save_fpath + 'mlfd_data.h5')
-        #my_mlfd.load_from_h5(filename=save_fpath + 'mlfd_data.h5')
+        #my_mlfd.create_grid()
+        #my_mlfd.deform_traj()
+        #my_mlfd.calc_similarities()
+        #my_mlfd.save_to_h5(filename=save_fpath + 'mlfd_data.h5')
+        my_mlfd.load_from_h5(filename=save_fpath + 'mlfd_data.h5')
         my_mlfd.get_strongest_sims(0.2)
         #my_mlfd.plot_strongest_sims(mode='show')
         my_mlfd.set_up_classifier()
         #my_mlfd.reproduce_at_point(coords=[[1, 10, 20]], plot=True)
-        my_mlfd.plot_classifier_results(filepath=save_fpath)
-        my_mlfd.plot_cube3D(filepath=save_fpath)
-        #my_mlfd.show_3d_in_2d_with_slider()
+        #my_mlfd.plot_classifier_results(filepath=save_fpath)
+        #my_mlfd.plot_cube3D(filepath=save_fpath)
+        my_mlfd.show_3d_in_2d_with_slider()
      
 if __name__ == '__main__':
   main()
