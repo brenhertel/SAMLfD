@@ -88,7 +88,7 @@ def perform_new_dmp_adapted(given_traj, initial=None, end=None, duration=1.0, dt
     traj_reproduced = []
     traj_adapted = []
     
-    for _ in range(int(dmp.tau / dmp.delta_t)):
+    for _ in range(traj_freq):#(int(dmp.tau / dmp.delta_t)):
       dmp.run_step()
       dmp_adapt.run_step()
       traj_reproduced.append(dmp.x)
