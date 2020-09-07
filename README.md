@@ -32,22 +32,24 @@ The key steps as implemented in code are explained below:
    1. To get the reproduction with greatest similarity at a specific point, call the method `reproduce_at_point(coords, plot)`, where `coords` is a 1 x n_dims numpy array with the coordinates of the new deformation point and `plot` is a boolean (`False` by default), which if set to `True`, will plot the reproduction alongside the original deformation. This function returns the reproduced trajectory in the same general shape as the demonstration. If you are unsure of where you want a reproduction, you can call the methods `reproduction_point_selection2D()` or `reproduction_point_selection3D()`. These will show the similarity region to the user and allow them to click on a point in that similarity region and create a reproduction. Both of these functions have the `plot` option (set to `True` by default), and return the reproduced trajectory as in `reproduce_at_point`.
  
 Some examples are provided in the repository:
-1. The Meta-LfD framework using a 2D initial point deformation. This uses the 'Saeghe' shape from the LASA handwriting dataset <insert link>. The outputs of the framework can be seen [here](https://github.com/brenhertel/Meta-LfD/tree/master/example_outputs/2d_initpt_example) including heatmaps, similarity regions, and example reproductions. For more details on the process, see [python script](https://github.com/brenhertel/Meta-LfD/blob/master/scripts/2d_initpt_example_prcess.py).
+1. The Meta-LfD framework using a 2D initial point deformation. This uses the 'Saeghe' shape from the [LASA handwriting dataset](https://bitbucket.org/khansari/lasahandwritingdataset/src/master/). The outputs of the framework can be seen [here](https://github.com/brenhertel/Meta-LfD/tree/master/example_outputs/2d_initpt_example) including heatmaps, similarity regions, and example reproductions. For more details on the process, see [python script](https://github.com/brenhertel/Meta-LfD/blob/master/scripts/2d_initpt_example_prcess.py).
    1. Demonstration <br/> ![Demonstration](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/2d_initpt_example/Original%20Trajectory.png)
    1. Meshgrid <br/> ![Meshgrid](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/2d_initpt_example/meshgrid.png)
    1. Deformations Grid <br/> ![Deformations Grid](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/2d_initpt_example/deformations.png)
    1. Heatmaps <br/> ![JA Heatmap](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/2d_initpt_example/JA%20Heatmap.png) ![LTE Heatmap](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/2d_initpt_example/LTE%20Heatmap.png) ![DMP Heatmap](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/2d_initpt_example/DMP%20Heatmap.png)
    1. Similarity Contour <br/> ![Similarity Contour](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/2d_initpt_example/Similarity%20Contour.png)
    1. Reproduction <br/> ![Reproduction](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/2d_initpt_example/example_reproduction.png)
-1. The Meta-LfD framework using a #D initial point deformation. This uses a reaching skill demonstration from the Georgia Tech dataset <insert link>. The outputs of the framework can be seen here: <insert fpath link> including heatmaps, similarity regions, and example reproductions. For more details on the process, see <link to example.py>.
-   1. Demonstration ![Alt Text](url)
-   1. Meshgrid ![Alt Text](url)
-   1. Heat "cubes" ![Alt Text](url)
-   1. Similarity Cube ![Alt Text](url)
-   1. Reproduction ![Alt Text](url)
-1. The Meta-LfD framework using a 2D initial point deformation. This uses  a pressing skill demonstration from the Georgia Tech dataset <insert link>. The outputs of the framework can be seen here: <insert fpath link> including heatmaps, similarity regions, and example reproductions. For more details on the process, see <link to example.py>.
-   1. Demonstration ![Alt Text](url)
-   1. Meshgrid ![Alt Text](url)
-   1. Heat "cubes" ![Alt Text](url)
-   1. Similarity Cube ![Alt Text](url)
-   1. Reproduction ![Alt Text](url)
+ 
+1. The Meta-LfD framework using a 3D initial point deformation. This uses a reaching skill demonstration from the [Georgia Tech dataset](https://arxiv.org/abs/1911.02725). The outputs of the framework can be seen here: <insert fpath link> including heatmaps, similarity regions, and example reproductions. For more details on the process, see [python script](https://github.com/brenhertel/Meta-LfD/blob/master/scripts/3d_initpt_example_prcess.py).
+   1. Demonstration ![Demonstration](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_initpt_example/Original%20Trajectory.png)
+   1. Meshgrid ![Meshgrid](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_initpt_example/meshgrid.png)
+   1. Heat "cubes" ![JA Heat "cubes"](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_initpt_example/JA%20Heatcube.png) ![LTE Heat "cubes"](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_initpt_example/LTE%20Heatcube.png) ![DMP Heat "cubes"](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_initpt_example/DMP%20Heatcube.png)
+   1. Similarity Cube ![Similarity Cube](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_initpt_example/Similarity%20Region%20Cube.png)
+   1. Reproduction ![Reproduction](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_initpt_example/example_reproduction.png)
+ 
+1. The Meta-LfD framework using a 3D endpoint deformation. This uses  a pressing skill demonstration from the [Georgia Tech dataset](https://arxiv.org/abs/1911.02725). The outputs of the framework can be seen here: <insert fpath link> including heatmaps, similarity regions, and example reproductions. For more details on the process, see [python script](https://github.com/brenhertel/Meta-LfD/blob/master/scripts/3d_endpt_example_prcess.py).
+   1. Demonstration ![Demonstration](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_endpt_example/Original%20Trajectory.png)
+   1. Meshgrid ![Meshgrid](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_endpt_example/meshgrid.png)
+   1. Heat "cubes" ![JA Heat "cubes"](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_endpt_example/JA%20Heatcube.png) ![LTE Heat "cubes"](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_endpt_example/LTE%20Heatcube.png) ![DMP Heat "cubes"](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_endpt_example/DMP%20Heatcube.png)
+   1. Similarity Cube ![Similarity Cube](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_endpt_example/Similarity%20Region%20Cube.png)
+   1. Reproduction ![Reproduction](https://github.com/brenhertel/Meta-LfD/blob/master/example_outputs/3d_endpt_example/example_reproduction.png)
