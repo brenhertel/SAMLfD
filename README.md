@@ -32,35 +32,35 @@ Some examples are provided in the repository:
 1. The Meta-LfD framework using a 2D initial point deformation. This uses the 'Saeghe' shape from the LASA handwriting dataset <insert link>. The outputs of the framework can be seen here: <insert fpath link> including heatmaps, similarity regions, and example reproductions. For more details on the process, see <link to example.py>.
   1. Demonstration
 <insert image>
-  1. Meshgrid
+   1. Meshgrid
 <insert image>
-  1. Deformations Grid
+   1. Deformations Grid
 <insert image>
-  1. Heatmaps
+   1. Heatmaps
 <insert images>
-  1. Similarity Contour
+   1. Similarity Contour
 <insert image>
-  1. Reproduction
+   1. Reproduction
 <insert image>
 1. The Meta-LfD framework using a #D initial point deformation. This uses a reaching skill demonstration from the Georgia Tech dataset <insert link>. The outputs of the framework can be seen here: <insert fpath link> including heatmaps, similarity regions, and example reproductions. For more details on the process, see <link to example.py>.
-  1. Demonstration
+   1. Demonstration
 <insert image>
-  1. Meshgrid
+   1. Meshgrid
 <insert image>
-  1. Heat "cubes"
+   1. Heat "cubes"
 <insert images>
-  1. Similarity Cube
+   1. Similarity Cube
 <insert image>
-  1. Reproduction
+   1. Reproduction
 <insert image>
 1. The Meta-LfD framework using a 2D initial point deformation. This uses  a pressing skill demonstration from the Georgia Tech dataset <insert link>. The outputs of the framework can be seen here: <insert fpath link> including heatmaps, similarity regions, and example reproductions. For more details on the process, see <link to example.py>.
-  1. Demonstration
+   1. Demonstration
 <insert image>
-  1. Meshgrid
+   1. Meshgrid
 <insert image>
-  1. Heat "cubes"
+   1. Heat "cubes"
 <insert images>
-  1. Similarity Cube
+   1. Similarity Cube
 <insert image>
-  1. Reproduction
+   1. Reproduction
 <insert image>
