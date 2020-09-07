@@ -158,6 +158,9 @@ def LTE_ND(org_traj, constraints, index):
     
 def LTE_ND_any_constraints(org_traj, constraints, index):
     
+    print(constraints)
+    print(index)
+    
     fixedWeight = 1e9
     
     (nbNodes, nbDims) = np.shape(org_traj)
@@ -168,6 +171,14 @@ def LTE_ND_any_constraints(org_traj, constraints, index):
     
     #not how it works in above code
     delta = np.matmul(L, org_traj)
+    #delta = np.zeros((np.shape(org_traj)))
+    #for i in range (len(delta)):
+    #  matrix_sum = np.zeros((1, nbDims))
+    #  for j in range (len(L)):
+    #    matrix_sum = matrix_sum + (L[i][j] * org_traj[j])
+    #  #print(matrix_sum[0])
+    #  #print(delta[i])
+    #  delta[i, :] = matrix_sum[0]
     
     ##assume boundcond 0 
     #L = np.delete(L, 0, 0)
@@ -175,18 +186,20 @@ def LTE_ND_any_constraints(org_traj, constraints, index):
     #delta = np.delete(delta, 0, 0)
     #delta = np.delete(delta, np.size(delta, 0) - 1, 0)
       
-    #current only implemented for 1 constraint
     to_append_L = np.zeros((len(index), nbNodes))
     for i in range(len(index)):
         to_append_L[[i], index[i]] = fixedWeight
         to_append_delta = fixedWeight * constraints[i]
         delta = np.vstack((delta, to_append_delta))
-    #print(np.shape(L))
+    print(to_append_L)
+    print(to_append_delta)
+    print(np.shape(L))
     L = np.vstack((L, to_append_L))
-    #print(np.shape(L))
-    #print(np.shape(delta))
-    new_traj, _, _, _ = np.linalg.lstsq(L, delta, rcond=None)
-    #print(np.shape(new_traj))
+    print(np.shape(L))
+    print(np.shape(delta))
+    new_traj, _, _, _ = np.linalg.lstsq(L, delta, rcond=-1)
+    #new_traj, _, _, _ = np.linalg.solve(L, delta)
+    print(np.shape(new_traj))
     return new_traj
     
 #in-file testing

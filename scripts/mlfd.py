@@ -13,6 +13,7 @@ import seaborn as sns; sns.set()
 from sklearn.svm import SVC
 from matplotlib.widgets import Slider, Button, RadioButtons
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from matplotlib.colors import LinearSegmentedColormap
 import copy
 
 DEBUG = True
@@ -128,7 +129,7 @@ class metalfd(object):
   #function to convert from gd_pt values to index values. Useful for plotting.
   #arguments
   #gd_pt: a scalar representing the grid point index
-  #return the index that the grid point maps to
+  #return the index (as a tuple) that the grid point maps to
   def convert_gd_pt_to_index(self, gd_pt):
     index = ()
     for d in range(self.n_dims):
@@ -247,6 +248,29 @@ class metalfd(object):
     self.n_metrics = 1
     self.is_dissim = is_dissim
 
+  #function that plots the original trajectory
+  #arguments:
+  #mode: a string, either 'save' or anything else. If 'save' the plot gets saved to the specified filepath. Otherwise it is shown to the user.
+  #filepath: filepath to directory where plot is saved to
+  #no returns
+  def plot_org_traj(self, mode='save', filepath=''):
+    fig = plt.figure()
+    name = 'Original Trajectory'
+    if (self.n_dims == 1):
+        plt.plot(self.org_traj, 'k')
+    elif (self.n_dims == 2):
+        plt.plot(self.org_traj[:, 0], self.org_traj[:, 1], 'k')
+    elif (self.n_dims == 3):
+            ax = fig.add_subplot(111, projection='3d')
+            plt.plot(self.org_traj[:, 0], self.org_traj[:, 1], self.org_traj[:, 2], 'k')
+    else:
+        print('Incorrect dimensionality to be able to plot')
+    if (mode == 'save'):
+        plt.savefig(filepath + name + '.png')
+    else:            
+        plt.show()
+    plt.close('all')
+
 ##################
 # STEP 2: MESHGRID
 ################## 
@@ -254,7 +278,7 @@ class metalfd(object):
   #function to create the Meta-LfD grid which is then used to deform the demonstration
   #arguments
   #given_grid_size (optional): the side length of the ragular structure which composes the deformation area (the side length of the square for 2D or cube for 3D). 9 was found to be a good default value experimentally.
-  #dists (optional): an array of d values of the side length of the deformation area, where d is the dimensionality of the trajectory. If none are given, the default value of 1/8 the length of the trajectory is used.
+  #dists (optional): an array of d values of the side length of the deformation area, where d is the dimensionality of the trajectory. If none are given, the default value of 1/8 the length of the trajectory is used (this value was experimentally determined to be an adequate estimation of the size of the workspace).
   #index (optional): the index to be deformed. If none is chosen, the default of initial point is used. Note: if using endpoint, please use (len(traj) - 1) as index instead of -1.
   #plot (optional): if true, plots each grid point. Note: only works for up to 3D.
   #no return
@@ -283,6 +307,8 @@ class metalfd(object):
         center = self.org_traj[self.deform_index][d]
         self.grid_vals.append(np.linspace(center - dists[d], center + dists[d], self.grid_size))
         if (DEBUG):
+            print('Starting position')
+            print(self.org_traj[self.deform_index])
             print('Grid values for dimension %d' % (d))
             print(self.grid_vals[d])
         
@@ -295,7 +321,7 @@ class metalfd(object):
         new_point = []
         
         #Convert grid point scalar to an index value
-        for d in reversed(range(self.n_dims)):
+        for d in range(self.n_dims):
             this_index = int(gd_pt % self.grid_size)
             gd_pt = gd_pt - this_index
             gd_pt = gd_pt / self.grid_size
@@ -491,6 +517,31 @@ class metalfd(object):
             else:            
                 plt.show() 
             plt.close('all')
+    elif (self.n_dims == 3):
+        for r in range(self.n_algs):
+            name = self.alg_names[r] + ' Heatcube'
+            #set up coordinates
+            x, y, z = np.indices((self.grid_size, self.grid_size, self.grid_size))
+            #create cube
+            voxels = (x >= 0) & (y >= 0) & (z >= 0)
+            #create cube with colors
+            colors = np.zeros(voxels.shape + (3,))
+            #define colors
+            for gd_pt in range(self.grid_size**self.n_dims):
+                ind = self.convert_gd_pt_to_index(gd_pt)
+                colors[ind + ((r % 3),)] = self.sim_vals[gd_pt][r]
+            # and plot everything
+            fig = plt.figure()
+            ax = fig.gca(projection='3d')
+            ax.voxels(voxels, facecolors=colors, edgecolor='k')
+            if (mode == 'save'):
+                plt.savefig(filepath + name + '.png')
+            else:            
+                plt.show() 
+            plt.close('all')
+    else:
+        print('Incorrect dimensionality to be able to plot')
+            
 
 #####################
 # STEP 3.5: SAVE/LOAD
@@ -541,7 +592,7 @@ class metalfd(object):
     #get deform points
     self.deform_points = np.array(dset.get('deform_points'))
     #get deform trajectories
-    self.deform_trajs = [[np.zeros(np.shape(self.org_traj)) for m in range(self.n_dims)] for gd_pt in range(self.grid_size**self.n_dims)]
+    self.deform_trajs = [[np.zeros(np.shape(self.org_traj)) for r in range(self.n_algs)] for gd_pt in range(self.grid_size**self.n_dims)]
     deform_data = dset.get('deform_trajs')
     for gd_pt in range(self.grid_size**self.n_dims):
         gd_pt_data = deform_data.get(str(gd_pt))
@@ -601,6 +652,40 @@ class metalfd(object):
         else:            
             plt.show() 
         plt.close('all')
+    elif (self.n_dims == 3):
+        name = 'Strongest Similarity Representations'
+        #set up coordinates
+        x, y, z = np.indices((self.grid_size, self.grid_size, self.grid_size))
+        #create cube
+        voxels = (x >= 0) & (y >= 0) & (z >= 0)
+        #create cube with colors
+        colors = np.zeros(voxels.shape + (3,))
+        if (DEBUG):
+            print('Colors shape')
+            print(np.shape(colors))
+        #define colors
+        for gd_pt in range(self.grid_size**self.n_dims):
+            ind = self.convert_gd_pt_to_index(gd_pt)
+            if (DEBUG):
+                print('Index:')
+                print(ind)
+                print('Colors at index:')
+                print(colors[ind])
+                print('Color change to:')
+                print(convert_num_to_rgb(self.strongest_sims[gd_pt]))
+            colors[ind] = convert_num_to_rgb(self.strongest_sims[gd_pt])
+        # and plot everything
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.voxels(voxels, facecolors=colors, edgecolor='k')
+        if (mode == 'save'):
+            plt.savefig(filepath + name + '.png')
+        else:            
+            plt.show() 
+        plt.close('all')
+    else:
+        print('Incorrect dimensionality to be able to plot')
+        
 
 ###########################
 # STEP 5: SET UP CLASSIFIER
@@ -728,6 +813,7 @@ class metalfd(object):
   #no returns
   def plot_contour2D(self, mode='save', filepath=''):
     colors = ['r', 'g', 'b', 'c', 'm', 'y'] #contour doesn't care about the prediction value, so change these values to get the right color contours. Use plot_classifier_results to see the true colors.
+    cm = LinearSegmentedColormap.from_list('my_colormap', COLORS[0:self.n_algs], N=self.n_algs)
     n_surf = self.grid_size * 5
     name = 'Similarity Contour'
     xnew = np.linspace(self.grid_vals[0][0], self.grid_vals[0][self.grid_size - 1], n_surf)
@@ -736,7 +822,7 @@ class metalfd(object):
     xx, yy = np.meshgrid(xnew, ynew)
     Z = self.clf.predict(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
-    plt.contourf(xx, yy, Z, colors=colors, alpha=0.8)
+    plt.contourf(xx, yy, Z, cmap=cm, alpha=0.8)
     plt.plot(self.org_traj[0][0], self.org_traj[0][1], 'k*', markersize=30)
     if (mode == 'save'):
         plt.savefig(filepath + name + '.png')
@@ -766,8 +852,13 @@ class metalfd(object):
         plt.savefig(filepath + name + '.png')
     else:
         plt.show()
+    plt.close('all')
      
-  def reproduction_point_selection2D(self, plot=False):
+  #shows the user the 2D similarity region and allows them to select a specific point from that region to be reproduced
+  #arguments
+  #plot (optional): if True, a plot of the reproduction will be shown to the user. If false, nothing happens.
+  #returns the reproduced trajectory with greatest similarity.
+  def reproduction_point_selection2D(self, plot=True):
     n_surf = self.grid_size * 5
     xnew = np.linspace(self.grid_vals[0][0], self.grid_vals[0][self.grid_size - 1], n_surf)
     ynew = np.linspace(self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1], n_surf)
@@ -804,6 +895,7 @@ class metalfd(object):
                 
     return self.reproduce_at_point(coords=np.array([[self.ix, self.iy]]), plot=plot)
   
+  #A previous version of reproduction_point_selection3D. For more user accessibility, please use that function. This function was kept as it is slightly faster and less buggy than reproduction_point_selection3D.
   def show_3d_in_2d_with_slider(self):
     self.gz_val = self.grid_vals[2][0]
     colors = ['r', 'g', 'b', 'c', 'm', 'y']
@@ -812,22 +904,16 @@ class metalfd(object):
     ynew = np.linspace(self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1], n_surf)
     fig, ax = plt.subplots()
     plt.subplots_adjust(left=0.25, bottom=0.25)
-    #region2d = plt.gca()
-    #plt.xticks(self.x_vals)
-    #plt.yticks(self.y_vals) 
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.title('Select a new generalization point')
-    #plt.tight_layout()
     
     l = [[plt.plot(xnew[i], ynew[j], COLORS[int(self.clf.predict(np.array([[xnew[i], ynew[j], self.gz_val]])))] + '.') for j in range(len(xnew))] for i in range(len(ynew))]
-    
     
     axcolor = 'lightgoldenrodyellow'
     ax_z = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
     
     s_z = Slider(ax_z, 'Z', self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1], self.gz_val)
-    
     
     #plot cube seperately
     #colors = ['r', 'g', 'b', 'c', 'm', 'y']
@@ -882,7 +968,6 @@ class metalfd(object):
         
     s_z.on_changed(update)
     
-    #global coords
     self.coords = []
 
     def onclick(event):
@@ -910,7 +995,6 @@ class metalfd(object):
     
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
     
-    
     plt.show()
     
     print(self.gz_val)
@@ -920,11 +1004,22 @@ class metalfd(object):
     return self.reproduce_at_point([self.coords], plot=True)
     
 
-
-  def reproduction_point_selection3D(self, plot=False):
+  #shows the user the 3D similarity region and a 2D cross section and allows them to select a specific point from that cross section to be reproduced
+  #arguments
+  #plot (optional): if True, a plot of the reproduction will be shown to the user. If false, nothing happens.
+  #returns the reproduced trajectory with greatest similarity.
+  def reproduction_point_selection3D(self, plot=True):
+  
+    #set up default values (these values will be changed with slider/radio button updates
+    self.gx_val = self.grid_vals[0][0]
+    self.gy_val = self.grid_vals[1][0]
+    self.gz_val = self.grid_vals[2][0]
+    self.view = 'X'
     
     #plot cube seperately
+    #colors = ['r', 'g', 'b', 'c', 'm', 'y']
     n_surf2 = self.grid_size
+    #name = 'SVM Similarity Region_cube_tp'
     xnew2 = np.linspace(self.grid_vals[0][0], self.grid_vals[0][self.grid_size - 1], n_surf2)
     ynew2 = np.linspace(self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1], n_surf2)
     znew2 = np.linspace(self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1], n_surf2)
@@ -934,11 +1029,11 @@ class metalfd(object):
     for t in range (len(xnew2)):
         for u in range (len(ynew2)):
             for v in range (len(znew2)):
-                ax2.scatter(xnew2[t], ynew2[u], znew2[v], c=colors[int(self.clf.predict(np.array([[xnew2[t], ynew2[u], znew2[v]]])))], alpha=0.5)
+                ax2.scatter(xnew2[t], ynew2[u], znew2[v], c=COLORS[int(self.clf.predict(np.array([[xnew2[t], ynew2[u], znew2[v]]])))], alpha=0.5)
     self.get_cube_outline(ax2)
-    xv = [self.grid_vals[0][0], self.grid_vals[0][0], self.grid_vals[0][self.grid_size - 1], self.grid_vals[0][self.grid_size - 1]]
-    yv = [self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1], self.grid_vals[1][self.grid_size - 1], self.grid_vals[1][0]]
-    zv = [self.ax_val, self.ax_val, self.ax_val, self.ax_val]
+    xv = [self.grid_vals[0][0],self.grid_vals[0][0],self.grid_vals[0][self.grid_size - 1],self.grid_vals[0][self.grid_size - 1]]
+    yv = [self.grid_vals[1][0],self.grid_vals[1][self.grid_size - 1],self.grid_vals[1][self.grid_size - 1],self.grid_vals[1][0]]
+    zv = [self.gz_val,self.gz_val,self.gz_val,self.gz_val]
     verts = [list(zip(xv,yv,zv))]
     poly = Poly3DCollection(verts, linewidth=1)
     poly.set_edgecolor('k')
@@ -951,130 +1046,55 @@ class metalfd(object):
     ax2.set_ylabel('Y')
     ax2.set_zlabel('Z')
     
-    # Point Selection Plot
-    self.x_val = self.grid_vals[0][0]
-    self.y_val = self.grid_vals[0][0]
-    self.z_val = self.grid_vals[0][0]
-    
-    n_surf = self.grid_size * 5
+    #set up point selection plot
+    colors = ['r', 'g', 'b', 'c', 'm', 'y']
+    n_surf = 40
     xnew = np.linspace(self.grid_vals[0][0], self.grid_vals[0][self.grid_size - 1], n_surf)
     ynew = np.linspace(self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1], n_surf)
     znew = np.linspace(self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1], n_surf)
+    
     fig, ax = plt.subplots()
-    plt.subplots_adjust(left=0.25, bottom=0.25)
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title('Select a new generalization point')
     
-    l = [[plt.plot(xnew[i], ynew[j], colors[int(self.clf.predict(np.array([[xnew[i], ynew[j], self.z_val]])))] + '.') for j in range(len(xnew))] for i in range(len(ynew))]
+    plt.subplots_adjust(left=0.25, bottom=0.3)
     
-    
+    #set up slider positions and values
     axcolor = 'lightgoldenrodyellow'
+    ax_x = plt.axes([0.25, 0.15, 0.65, 0.03], facecolor=axcolor)
+    ax_y = plt.axes([0.25, 0.10, 0.65, 0.03], facecolor=axcolor)
+    ax_z = plt.axes([0.25, 0.05, 0.65, 0.03], facecolor=axcolor)
     
-    ax_slider = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
+    s_x = Slider(ax_x, 'X', self.grid_vals[0][0], self.grid_vals[0][self.grid_size - 1], self.gx_val)
+    s_y = Slider(ax_y, 'Y', self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1], self.gy_val)
+    s_z = Slider(ax_z, 'Z', self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1], self.gz_val)
     
-    s_ax = Slider(ax_slider, 'Z', self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1], self.z_val)
+    #set up radio buttons to switch views
+    rax = plt.axes([0.05, 0.7, 0.15, 0.15], facecolor=axcolor)
+    radio = RadioButtons(rax, ('X', 'Y', 'Z'))
     
-    rax = plt.axes([0.025, 0.5, 0.15, 0.15], facecolor=axcolor)
-    radio = RadioButtons(rax, ('X', 'Y', 'Z'), active=2)
-
-    def switch_ax(label):
-        if (DEBUG):
-            print(label)
-        if (label == 'X'):
-            s_ax = Slider(ax_slider, label, self.grid_vals[0][0], self.grid_vals[0][self.grid_size - 1], self.x_val)
-        elif(label == 'Y'):
-            s_ax = Slider(ax_slider, label, self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1], self.y_val)
-        else:
-            s_ax = Slider(ax_slider, label, self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1], self.z_val)
-            
-        def update_x(val):
-            self.x_val = s_ax.val
-            if (DEBUG):
-                print('New axis value:')
-                print(self.x_val)
-            for i in range(len(ynew)):
-                for j in range(len(znew)):
-                    l[i][j][0].set_color(colors[int(self.clf.predict(np.array([[self.x_val, ynew[i], znew[j]]])))])
-            fig.canvas.draw_idle()
-            ax2.collections.pop()
-            xv = [self.x_val, self.x_val, self.x_val, self.x_val]
-            yv = [self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1], self.grid_vals[1][self.grid_size - 1], self.grid_vals[1][0]]
-            zv = [self.grid_vals[2][0], self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1], self.grid_vals[2][self.grid_size - 1]]
-            verts = [list(zip(xv,yv,zv))]
-            poly = Poly3DCollection(verts, linewidth=1)
-            poly.set_edgecolor('k')
-            poly.set_alpha(0.1)
-            poly.set_facecolor('w')
-            ax2.add_collection3d(poly)
-            fig2.canvas.draw_idle()
-            if (DEBUG):
-                print('updated')
-            
-        def update_y(val):
-            self.y_val = s_ax.val
-            if (DEBUG):
-                print('New axis value:')
-                print(self.x_val)
-            for i in range(len(xnew)):
-                for j in range(len(znew)):
-                    l[i][j][0].set_color(colors[int(self.clf.predict(np.array([[xnew[i], self.y_val, znew[j]]])))])
-            fig.canvas.draw_idle()
-            ax2.collections.pop()
-            xv = [self.grid_vals[0][0], self.grid_vals[0][self.grid_size - 1], self.grid_vals[0][self.grid_size - 1], self.grid_vals[0][0]]
-            yv = [self.y_val, self.y_val, self.y_val, self.y_val]
-            zv = [self.grid_vals[2][0], self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1], self.grid_vals[2][self.grid_size - 1]]
-            verts = [list(zip(xv,yv,zv))]
-            poly = Poly3DCollection(verts, linewidth=1)
-            poly.set_edgecolor('k')
-            poly.set_alpha(0.1)
-            poly.set_facecolor('w')
-            ax2.add_collection3d(poly)
-            fig2.canvas.draw_idle()
-            if (DEBUG):
-                print('updated')
-            
-        def update_z(val):
-            self.z_val = s_ax.val
-            if (DEBUG):
-                print('New axis value:')
-                print(self.x_val)
-            for i in range(len(ynew)):
-                for j in range(len(znew)):
-                    l[i][j][0].set_color(colors[int(self.clf.predict(np.array([[xnew[i], ynew[j], self.z_val]])))])
-            fig.canvas.draw_idle()
-            ax2.collections.pop()
-            xv = [self.x_val, self.x_val, self.x_val, self.x_val]
-            yv = [self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1], self.grid_vals[1][self.grid_size - 1], self.grid_vals[1][0]]
-            zv = [self.grid_vals[2][0], self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1], self.grid_vals[2][self.grid_size - 1]]
-            verts = [list(zip(xv,yv,zv))]
-            poly = Poly3DCollection(verts, linewidth=1)
-            poly.set_edgecolor('k')
-            poly.set_alpha(0.1)
-            poly.set_facecolor('w')
-            ax2.add_collection3d(poly)
-            fig2.canvas.draw_idle()
-            if (DEBUG):
-                print('updated')
-                
-        fig.canvas.draw_idle()
-        
-    radio.on_clicked(switch_ax)
+    ax.set_xlabel('Y')
+    ax.set_ylabel('Z')
+    ax.set_title('Select a new generalization point')
     
-    ### PICK UP HERE ###
+    #store each plotted point so they can be updated later
+    self.l = [[ax.plot(ynew[i], znew[j], COLORS[int(self.clf.predict(np.array([[self.gx_val, ynew[i], znew[j]]])))] + '.') for j in range(len(znew))] for i in range(len(ynew))]
     
     
-    def update(val):
-        self.ax_val = s_ax.val
-        if (DEBUG):
-            print('New axis value:')
-            print(self.ax_val)
-        for i in range(len(xnew)):
-            for j in range(len(ynew)):
-                l[i][j][0].set_color(colors[int(self.clf.predict(np.array([[xnew[i], ynew[j], gz_val]])))])
+    
+    #so that clicking the slider doesn't register as clicking on the grid
+    self.slider_clicked = 0
+    
+    #set up slider update functions
+    def update_x(val):
+        self.gx_val = s_x.val
+        print(self.gx_val)
+        for i in range(len(ynew)):
+            for j in range(len(znew)):
+                self.l[i][j][0].set_color(COLORS[int(self.clf.predict(np.array([[self.gx_val, ynew[i], znew[j]]])))])
         fig.canvas.draw_idle()
         ax2.collections.pop()
-        zv = [gz_val,gz_val,gz_val,gz_val]
+        xv = [self.gx_val,self.gx_val,self.gx_val,self.gx_val]
+        yv = [self.grid_vals[1][0],self.grid_vals[1][self.grid_size - 1],self.grid_vals[1][self.grid_size - 1],self.grid_vals[1][0]]
+        zv = [self.grid_vals[2][0],self.grid_vals[2][0],self.grid_vals[2][self.grid_size - 1],self.grid_vals[2][self.grid_size - 1]]
         verts = [list(zip(xv,yv,zv))]
         poly = Poly3DCollection(verts, linewidth=1)
         poly.set_edgecolor('k')
@@ -1083,46 +1103,152 @@ class metalfd(object):
         ax2.add_collection3d(poly)
         fig2.canvas.draw_idle()
         print('updated')
+        self.slider_clicked = 1
         
-    s_ax.on_changed(update)
+    s_x.on_changed(update_x)
     
-    #global coords
-    coords = []
+    def update_y(val):
+        self.gy_val = s_y.val
+        print(self.gy_val)
+        for i in range(len(xnew)):
+            for j in range(len(znew)):
+                self.l[i][j][0].set_color(COLORS[int(self.clf.predict(np.array([[xnew[i], self.gy_val, znew[j]]])))])
+        fig.canvas.draw_idle()
+        ax2.collections.pop()
+        xv = [self.grid_vals[0][0],self.grid_vals[0][self.grid_size - 1],self.grid_vals[0][self.grid_size - 1],self.grid_vals[0][0]]
+        yv = [self.gy_val,self.gy_val,self.gy_val,self.gy_val]
+        zv = [self.grid_vals[2][0],self.grid_vals[2][0],self.grid_vals[2][self.grid_size - 1],self.grid_vals[2][self.grid_size - 1]]
+        verts = [list(zip(xv,yv,zv))]
+        poly = Poly3DCollection(verts, linewidth=1)
+        poly.set_edgecolor('k')
+        poly.set_alpha(0.1)
+        poly.set_facecolor('w')
+        ax2.add_collection3d(poly)
+        fig2.canvas.draw_idle()
+        print('updated')
+        self.slider_clicked = 1
+        
+    s_y.on_changed(update_y)
+    
+    def update_z(val):
+        self.gz_val = s_z.val
+        print(self.gz_val)
+        for i in range(len(xnew)):
+            for j in range(len(ynew)):
+                self.l[i][j][0].set_color(COLORS[int(self.clf.predict(np.array([[xnew[i], ynew[j], self.gz_val]])))])
+        fig.canvas.draw_idle()
+        ax2.collections.pop()
+        xv = [self.grid_vals[0][0],self.grid_vals[0][0],self.grid_vals[0][self.grid_size - 1],self.grid_vals[0][self.grid_size - 1]]
+        yv = [self.grid_vals[1][0],self.grid_vals[1][self.grid_size - 1],self.grid_vals[1][self.grid_size - 1],self.grid_vals[1][0]]
+        zv = [self.gz_val,self.gz_val,self.gz_val,self.gz_val]
+        verts = [list(zip(xv,yv,zv))]
+        poly = Poly3DCollection(verts, linewidth=1)
+        poly.set_edgecolor('k')
+        poly.set_alpha(0.1)
+        poly.set_facecolor('w')
+        ax2.add_collection3d(poly)
+        fig2.canvas.draw_idle()
+        print('updated')
+        self.slider_clicked = 1
+        
+    s_z.on_changed(update_z)
+    
+    
+    def switch_view(label):
+        self.view = label
+        self.slider_clicked = 1
+        if (self.view == 'X'):
+            for i in range(len(ynew)):
+                for j in range(len(znew)):
+                    self.l[i][j][0].remove()
+            self.l = [[ax.plot(ynew[i], znew[j], COLORS[int(self.clf.predict(np.array([[self.gx_val, ynew[i], znew[j]]])))] + '.') for j in range(len(znew))] for i in range(len(ynew))]
+            update_x(self.gx_val)
+            ax.set_xlabel('Y')
+            ax.set_ylabel('Z')
+            ax.set_xlim([self.grid_vals[1][0], self.grid_vals[1][self.grid_size - 1]])
+            ax.set_ylim([self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1]])
+        if (self.view == 'Y'):
+            for i in range(len(xnew)):
+                for j in range(len(znew)):
+                    self.l[i][j][0].remove()
+            self.l = [[ax.plot(xnew[i], znew[j], COLORS[int(self.clf.predict(np.array([[xnew[i], self.gy_val, znew[j]]])))] + '.') for j in range(len(znew))] for i in range(len(xnew))]
+            update_y(self.gy_val)
+            ax.set_xlabel('X')
+            ax.set_ylabel('Z')
+            ax.set_xlim([self.grid_vals[0][0], self.grid_vals[0][self.grid_size - 1]])
+            ax.set_ylim([self.grid_vals[2][0], self.grid_vals[2][self.grid_size - 1]])
+        if (self.view == 'Z'):
+            for i in range(len(xnew)):
+                for j in range(len(ynew)):
+                    self.l[i][j][0].remove()
+            self.l = [[ax.plot(xnew[i], ynew[j], COLORS[int(self.clf.predict(np.array([[xnew[i], ynew[j], self.gz_val]])))] + '.') for j in range(len(ynew))] for i in range(len(xnew))]
+            update_y(self.gy_val)
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_xlim([self.grid_vals[1][0], self.grid_vals[0][self.grid_size - 1]])
+            ax.set_ylim([self.grid_vals[0][0], self.grid_vals[1][self.grid_size - 1]])
+        plt.draw()
+        if (DEBUG):
+            print(self.view)
+            
+    radio.on_clicked(switch_view)
+    
+    #what to do when point is selected
+    self.coords = []
 
     def onclick(event):
-        #global ix, iy
-        ix, iy = event.xdata, event.ydata
-    
-        #global coords
-        coords.append(ix)
-        coords.append(iy)
-        print(coords)
-        if ix < self.x_vals[0] or ix > self.x_vals[self.grid_size - 1] or iy < self.y_vals[0] or iy > self.y_vals[self.grid_size - 1]:
-            print('Coordinate chosen is out of bounds, try again!')
-            coords[:] = []
-        else:
-            print('x = %f, y = %f'%(ix, iy))
-            print('Coordinate chosen, no longer recording plot inputs')
-            #plt.figure(fig.number)
-            ax.plot(ix, iy, 'k+', markersize=20, mew=5.)
-            fig.canvas.draw()
-            time.sleep(2.)
-            fig.canvas.mpl_disconnect(cid)
-            plt.close('all')
+        if (self.slider_clicked == 0):
+            if (DEBUG):
+                print(self.view)
+                print(self.grid_vals)
+                
+            ix, iy = event.xdata, event.ydata
+            print('ix = %f, iy = %f'%(ix, iy))
+        
+            if (self.view == 'X') and (ix < self.grid_vals[1][0] or ix > self.grid_vals[1][self.grid_size - 1] or iy < self.grid_vals[2][0] or iy > self.grid_vals[2][self.grid_size - 1]):
+                print('Coordinate chosen is out of bounds, try again!')
+                self.coords[:] = []
+            elif (self.view == 'Y') and (ix < self.grid_vals[0][0] or ix > self.grid_vals[0][self.grid_size - 1] or iy < self.grid_vals[2][0] or iy > self.grid_vals[2][self.grid_size - 1]):
+                print('Coordinate chosen is out of bounds, try again!')
+                self.coords[:] = []
+            elif (self.view == 'Z') and (ix < self.grid_vals[0][0] or ix > self.grid_vals[0][self.grid_size - 1] or iy < self.grid_vals[1][0] or iy > self.grid_vals[1][self.grid_size - 1]):
+                print('Coordinate chosen is out of bounds, try again!')
+                self.coords[:] = []
+            else:
+                #global coords
+                if (self.view == 'X'):
+                    self.coords.append(self.gx_val)
+                self.coords.append(ix)
+                if (self.view == 'Y'):
+                    self.coords.append(self.gy_val)
+                self.coords.append(iy)
+                if (self.view == 'Z'):
+                    self.coords.append(self.gz_val)
+                print(self.coords)
+                print('Coordinate chosen, no longer recording plot inputs')
+                #plt.figure(fig.number)
+                ax.plot(ix, iy, 'k+', markersize=20, mew=5.)
+                fig.canvas.draw()
+                fig.canvas.mpl_disconnect(cid)
+                time.sleep(2.)
+                plt.close('all')
+        self.slider_clicked = 0
     
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
     
-    
+    #show the plot to allow for point selection
     plt.show()
     
-    print(gz_val)
-    coords.append(gz_val)
-    print(coords)
-    print(self.clf.predict(np.array([coords])))
-    return self.reproduce_optimal_at_point([coords], plot=True, mode='show', filepath='')
+    if (DEBUG):
+        print(self.coords)
+        print(self.clf.predict(np.array([self.coords])))
+    
+    #get reproduction at selected point
+    return self.reproduce_at_point([self.coords], plot=True)
         
         
 def main3D():
+    #simple example of 3D use
     x = np.linspace(1, 10)
     y = np.linspace(1, 10)**2
     z = np.linspace(1, 10)**3
@@ -1140,23 +1266,30 @@ def main3D():
     my_mlfd.add_representation(dmp.perform_dmp_general, 'DMP')
     import similaritymeasures
     my_mlfd.add_metric(similaritymeasures.frechet_dist, is_dissim=True)
-    #my_mlfd.create_grid(given_grid_size=9, plot=False)
-    #my_mlfd.deform_traj()
-    #my_mlfd.calc_similarities()
-    #my_mlfd.save_to_h5(filename='test3d.h5')
-    my_mlfd.load_from_h5(filename='test3d.h5')
-    #my_mlfd.plot_heatmap(mode='show')
+    
+    my_mlfd.create_grid(plot=False)
+    
+    my_mlfd.deform_traj()
+    
+    my_mlfd.calc_similarities()
+    my_mlfd.plot_heatmap(mode='show')
+    
+    my_mlfd.save_to_h5(filename='../data/test3d.h5')
+    #my_mlfd.load_from_h5(filename='../data/test3d.h5')
+    
     my_mlfd.get_strongest_sims(0.2)
-    #my_mlfd.plot_strongest_sims(mode='show')
+    my_mlfd.plot_strongest_sims(mode='show')
+    
     my_mlfd.set_up_classifier()
-    #my_mlfd.reproduce_at_point(coords=[[1, 10, 20]], plot=True)
-    #my_mlfd.plot_classifier_results(mode='show')
+    
+    my_mlfd.plot_classifier_results(mode='show')
     my_mlfd.plot_cube3D(mode='show')
-    #my_mlfd.show_3d_in_2d_with_slider()
+    my_mlfd.reproduction_point_selection3D()
         
 def main2D():
-    x = np.linspace(1, 10)
-    y = np.linspace(1, 10)**2
+    #simple example of 2D use
+    x = np.linspace(1, 10, 1000)
+    y = np.linspace(1, 10, 1000)**2
     
     my_mlfd = metalfd()
     my_mlfd.add_traj(np.transpose(np.vstack((x, y))))
@@ -1171,20 +1304,26 @@ def main2D():
     my_mlfd.add_representation(dmp.perform_dmp_general, 'DMP')
     import similaritymeasures
     my_mlfd.add_metric(similaritymeasures.frechet_dist, is_dissim=True)
-    my_mlfd.create_grid(given_grid_size=9, plot=False)
+    
+    my_mlfd.create_grid(plot=False)
+    
     my_mlfd.deform_traj(plot=True)
+    
     my_mlfd.calc_similarities()
-    my_mlfd.save_to_h5(filename='test.h5')
-    #my_mlfd.load_from_h5(filename='test.h5')
     my_mlfd.plot_heatmap(mode='show')
+    
+    my_mlfd.save_to_h5(filename='../data/test.h5')
+    #my_mlfd.load_from_h5(filename='../data/test.h5')
+    
     my_mlfd.get_strongest_sims(0.2)
     my_mlfd.plot_strongest_sims(mode='show')
+    
     my_mlfd.set_up_classifier()
-    #my_mlfd.reproduce_at_point(coords=[[1, 10]], plot=True)
+    
     my_mlfd.plot_classifier_results(mode='show')
     my_mlfd.plot_contour2D(mode='show')
-    #my_mlfd.reproduction_point_selection2D(plot=True)
+    my_mlfd.reproduction_point_selection2D()
         
 if __name__ == '__main__':
-  main3D()    
+  main2D()    
         
