@@ -173,10 +173,10 @@ def perform_ja_general(org_traj, constraints, index, lmbda=-1.0):
             else:
                 print('WARNING: This implementation of JA cannot via-point deform! Constraint not included.')
         
-        print('Initial Constriaint')
-        print(init)
-        print('End Constraint')
-        print(end)
+        #print('Initial Constriaint')
+        #print(init)
+        #print('End Constraint')
+        #print(end)
         
         ntraj = np.reshape(org_traj[:, i], (1, pts))
         ja_traj = perform_ja_improved(ntraj, initial=init, end=end, lmbda=lmbda)
@@ -184,9 +184,9 @@ def perform_ja_general(org_traj, constraints, index, lmbda=-1.0):
             out_traj = ja_traj
         else:
             out_traj = np.vstack((out_traj, ja_traj))
-    print(np.shape(out_traj))
+    #print(np.shape(out_traj))
     out_traj = np.transpose(out_traj)
-    print(np.shape(out_traj))
+    #print(np.shape(out_traj))
     #input()
     return out_traj
 

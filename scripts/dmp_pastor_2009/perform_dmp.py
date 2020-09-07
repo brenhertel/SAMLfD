@@ -59,7 +59,7 @@ def perform_new_dmp_adapted(given_traj, initial=None, end=None, duration=1.0, dt
         end = list_traj[-1]
         
     if (isinstance(initial, (list, np.ndarray))):
-        print(initial)
+        #print(initial)
         initial = initial[0]
     if (isinstance(end, (list, np.ndarray))):
         end = end[0]
@@ -113,10 +113,10 @@ def perform_dmp_general(given_traj, constraints, indeces, duration=1.0, dt=None,
         for ind in range(len(indeces)):
             if (indeces[ind] == 0):
                 initp = constraints[ind][d]
-                print('Initial constraint: %f' % (initp))
+                #print('Initial constraint: %f' % (initp))
             elif (indeces[ind] == n_pts - 1) or (indeces[ind] == - 1):
                 endp = constraints[ind][d]
-                print('End constraint: %f' % (endp))
+                #print('End constraint: %f' % (endp))
             else:
                 print('WARNING: This implementation of DMP cannot via-point deform! Constraint not included.')
         traj_adapted = perform_new_dmp_adapted(traj_1d, initp, endp)

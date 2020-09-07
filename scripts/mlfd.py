@@ -16,7 +16,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from matplotlib.colors import LinearSegmentedColormap
 import copy
 
-DEBUG = True
+DEBUG = False
 COLORS = ['r', 'g', 'b', 'c', 'm', 'y', 'k'] #black is for underflow with queries that don't meet similarity. Not used for representations.
 
 #conventions used:
@@ -437,7 +437,7 @@ class metalfd(object):
         plt.close('all')
 
 ###############################
-# STEP 3: SIMILARITY EVALUATION
+# STEP 4: SIMILARITY EVALUATION
 ###############################
 
   #function that calculates the similarities of each deformation at each grid point
@@ -544,7 +544,7 @@ class metalfd(object):
             
 
 #####################
-# STEP 3.5: SAVE/LOAD
+# STEP 4.5: SAVE/LOAD
 #####################
   
   #saves the data in the current Meta-LfD framework process. Note: it is highly recommended you do this for each demonstration. Going through and getting each deform can be a lengthy process, whereas it takes fractions of a second to load it from a file. This should be done after calculating similarities but before user choice in the framework flow diagram.
@@ -603,13 +603,13 @@ class metalfd(object):
     fp.close()
  
 ##############################
-# STEP 4: INTERPRET SIMILARITY
+# STEP 5: INTERPRET SIMILARITY
 ##############################
   
   #gets the strongest similarity at each point on the grid. Used to set up classifier. Note: if 2 representations have the same similarity at a deform point, the one that was given to the framework first is chosen as the greatest.
   #arguments
   #threshold (optional): The threshold for which anything below should not be considered in creating reproductions.
-  def get_strongest_sims(self, threshold=0.0):
+  def get_strongest_sims(self, threshold=0.1):
     self.strongest_sims = np.zeros(self.grid_size**self.n_dims)
     for gd_pt in range(self.grid_size**self.n_dims):
         cur_sim_vals = self.sim_vals[gd_pt]
@@ -688,7 +688,7 @@ class metalfd(object):
         
 
 ###########################
-# STEP 5: SET UP CLASSIFIER
+# STEP 6: SET UP CLASSIFIER
 ###########################
   
   #sets up the classifier which is then used after user selects output. The function get_strongest_sims must be called before this function.
@@ -699,7 +699,7 @@ class metalfd(object):
     self.clf.fit(self.deform_points, self.strongest_sims)
 
 ##############################
-# STEP 6: USER-DESIRED OUTPUTS
+# STEP 7: USER-DESIRED OUTPUTS
 ##############################
   
   #crafts a reproduction with greatest similarity from requested point
