@@ -414,7 +414,9 @@ class metalfd(object):
                 plt.subplot(self.n_dims, self.grid_size, gd_pt + 1)
                 for r in range(self.n_algs):
                     plt.plot(self.deform_trajs[gd_pt][r], COLORS[r])
-                    plt.plot(self.org_traj, 'k')
+                plt.plot(self.org_traj, 'k')
+                plt.xticks([])
+                plt.yticks([])
         elif (self.n_dims == 2):
             for gd_pt in range(self.grid_size**self.n_dims):
                 plt.subplot(self.grid_size, self.grid_size, gd_pt + 1)
@@ -431,6 +433,8 @@ class metalfd(object):
                     print('y')
                     print(self.org_traj[:, 1])
                 plt.plot(self.org_traj[:, 0], self.org_traj[:, 1], 'k')
+                plt.xticks([])
+                plt.yticks([])
         else:
             print('Unable to plot with current dimensions!')
         plt.show()
