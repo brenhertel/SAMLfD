@@ -1,5 +1,5 @@
 # Meta-LfD
-Implementation of Meta-Learning from Demonstration (Meta-Lfd) framework using Python.
+Implementation of Meta-Learning from Demonstration (Meta-LfD) framework using Python.
  
 Mantained by Brendan Hertel (brendan_hertel@student.uml.edu).
  
