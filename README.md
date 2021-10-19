@@ -1,9 +1,9 @@
-# Meta-LfD
-Implementation of Meta-Learning from Demonstration (Meta-LfD) framework using Python.
+# SAMLfD
+Implementation of Similarity-Aware Multi-representational Learning from Demonstration (SAMLfD) framework using Python.
  
 Mantained by Brendan Hertel (brendan_hertel@student.uml.edu).
  
-This code follows the implementation proposed by the paper "Meta-Learning from Demonstration using Similarity Maps" by Brendan Hertel and Reza Ahmadzadeh, which can be seen here : N/A <insert link>
+This code follows the implementation proposed by the paper "Similarity-Aware Skill Reproduction based on Multi-Representational Learning from Demonstrations" by Brendan Hertel and Reza Ahmadzadeh, which can be seen here : N/A <insert link>
  
 An image of the framework process can be seen below:
 
@@ -12,7 +12,7 @@ An image of the framework process can be seen below:
 The key steps as implemented in code are explained below:
 
 1. Setup
-   1. To initialize a Meta-LfD object, call `mlfd.metalfd()` after importing mlfd.py
+   1. To initialize a SAMLfD object, call `mlfd.SAMLfD()` after importing mlfd.py
    1. to use a given demonstration, call the method `add_traj(demonstration)`. This stores the demonstration for the object to use. Note: the demonstration should be in the form of a n_pts x n_dims numpy array.
    1. To use a representation, call the method `add_representation(representation, 'Name')`, where representation is a function handle to the representation, which takes its inputs in the form of `f(org_traj, constraints, index)` and only returns the deformed trajectory in the same general shape as the demonstration. `'Name'` is the name of the representation, and is only used for labeling data shown to the user.
    1. To use a similarity metric, call the method `add_metric(metric)`, where metric is a function handle to the metric, which takes its inputs in the form of `f(org_traj, comparison_traj)` where both org_traj and comparison_traj  are n_pts x n_dims numpy arrays (for reference, metrics in the [similaritymeasures python package](https://pypi.org/project/similaritymeasures/) are set up this way). If the metric is a dissimilarity metric and not a similarity metric, then pass `True` as a second argument to this function call.
