@@ -47,7 +47,7 @@ def main():
         [x, y] = get_lasa_traj1(lasa_names[i])
         traj = np.hstack((x, y))
         print(np.shape(traj))
-        my_mlfd = mlfd.metalfd()
+        my_mlfd = mlfd.SAMLfD()
         my_mlfd.add_traj(traj)
         my_mlfd.add_representation(ja.perform_ja_general, 'JA')
         my_mlfd.add_representation(lte.LTE_ND_any_constraints, 'LTE')

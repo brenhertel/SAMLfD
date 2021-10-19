@@ -58,7 +58,7 @@ def downsample_traj(traj, n=100):
 #returns the total distance of traj, calculated using euclidean distance  
 def get_traj_dist(traj):
     dist = 0.
-    for n in range(len(traj) - 2):
+    for n in range(len(traj) - 1):
         dist = dist + (sum((traj[n + 1] - traj[n])**2))**0.5
     if (DEBUG):
         print('Traj total dist: %f' % (dist))
@@ -94,8 +94,8 @@ def convert_num_to_rgb(input):
         print()
     return out_triplet
 
-#Meta-Lerning from Demonstration (MLfD) class
-class metalfd(object):
+#Similarity-Aware Multi-representational Learning from Demonstration (SAMLfD) class
+class SAMLfD(object):
 
   #initialize variables
   def __init__(self):
@@ -120,7 +120,7 @@ class metalfd(object):
 # UTILITY
 #########
 
-  #function to get the total distance of the trajectory stored in Meta-Lfd
+  #function to get the total distance of the trajectory stored in SAMLfD
   #no arguments
   #returns the total distance of the trajectory
   def get_demo_dist(self):
@@ -215,7 +215,7 @@ class metalfd(object):
 # STEP 1: SETUP
 ###############    
     
-  #function that sets gives the input demonstration for Meta-LfD
+  #function that sets gives the input demonstration for SAMLfD
   #arguments
   #traj: nxd vector, where n is number of points and d is number of dims
   #no return
@@ -227,7 +227,7 @@ class metalfd(object):
         print(self.org_traj)
         print((self.n_pts, self.n_dims))
     
-  #function that gives a LfD representation to Meta-LfD
+  #function that gives a LfD representation to SAMLfD
   #arguments
   #alg: function pointer to LfD representation. Inputs to function should be formatted f(org_traj, constraints, index) and the only return of the function should be the deformed trajectory, formatted in the same shape as the original trajectory.
   #name: name of the representation. Used for plotting.
@@ -237,7 +237,7 @@ class metalfd(object):
     self.alg_names.append(name)
     self.n_algs = self.n_algs + 1
    
-  #function that gives a similarity metric to Meta-LfD
+  #function that gives a similarity metric to SAMLfD
   #arguments
   #metric: function pointer to similarity metric. Inputs to function should be formatted f(org_traj, compare_traj) and the only return of the function should be a scalar value representing the similarity.
   #is_dissim: boolean that describes if the metric measures similarity or dissimilarity. Similarity means higher values are more similar, dissimilarity means higher values are less similar.
@@ -275,7 +275,7 @@ class metalfd(object):
 # STEP 2: MESHGRID
 ################## 
     
-  #function to create the Meta-LfD grid which is then used to deform the demonstration
+  #function to create the SAMLfD grid which is then used to deform the demonstration
   #arguments
   #given_grid_size (optional): the side length of the ragular structure which composes the deformation area (the side length of the square for 2D or cube for 3D). 9 was found to be a good default value experimentally.
   #dists (optional): an array of d values of the side length of the deformation area, where d is the dimensionality of the trajectory. If none are given, the default value of 1/8 the length of the trajectory is used (this value was experimentally determined to be an adequate estimation of the size of the workspace).
@@ -299,7 +299,7 @@ class metalfd(object):
     
     #get default dist if none chosen
     if dists == None:
-        K = 8.0
+        K = 4.0
         dists = np.ones(self.n_dims) * (self.get_demo_dist() / K)
         
     #create the grid of deformations. Using linspace creates linearly spaced points for each dimension
@@ -461,6 +461,7 @@ class metalfd(object):
   
     #set up array to store similarity values
     self.sim_vals = np.zeros((self.grid_size**self.n_dims, self.n_algs))
+    self.sim_vals_denorm = np.zeros((self.grid_size**self.n_dims, self.n_algs))
     
     if (DEBUG):
         print('Similarity Value Base:')
@@ -475,6 +476,7 @@ class metalfd(object):
                 self.sim_vals[gd_pt][r] = self.metric(downsample_traj(self.org_traj), downsample_traj(self.deform_trajs[gd_pt][r]))
             else:
                 self.sim_vals[gd_pt][r] = self.metric(self.org_traj, self.deform_trajs[gd_pt][r])
+            self.sim_vals_denorm[gd_pt][r] = self.sim_vals[gd_pt][r]
     
     #find the absolute max and min of the similarity values.
     min_sim = np.amin(self.sim_vals)
@@ -551,7 +553,7 @@ class metalfd(object):
 # STEP 4.5: SAVE/LOAD
 #####################
   
-  #saves the data in the current Meta-LfD framework process. Note: it is highly recommended you do this for each demonstration. Going through and getting each deform can be a lengthy process, whereas it takes fractions of a second to load it from a file. This should be done after calculating similarities but before user choice in the framework flow diagram.
+  #saves the data in the current SAMLfD framework process. Note: it is highly recommended you do this for each demonstration. Going through and getting each deform can be a lengthy process, whereas it takes fractions of a second to load it from a file. This should be done after calculating similarities but before user choice in the framework flow diagram.
   #arguments
   #filename: full filpath including filename of the .h5 file for which the information should be stored
   #no returns
@@ -1257,7 +1259,7 @@ def main3D():
     y = np.linspace(1, 10)**2
     z = np.linspace(1, 10)**3
     
-    my_mlfd = metalfd()
+    my_mlfd = SAMLfD()
     my_mlfd.add_traj(np.transpose(np.vstack((x, y, z))))
     import ja
     my_mlfd.add_representation(ja.perform_ja_general, 'JA')
@@ -1295,7 +1297,7 @@ def main2D():
     x = np.linspace(1, 10, 1000)
     y = np.linspace(1, 10, 1000)**2
     
-    my_mlfd = metalfd()
+    my_mlfd = SAMLfD()
     my_mlfd.add_traj(np.transpose(np.vstack((x, y))))
     import ja
     my_mlfd.add_representation(ja.perform_ja_general, 'JA')

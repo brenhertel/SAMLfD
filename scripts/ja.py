@@ -72,7 +72,7 @@ class JA(object):
         return res
       #MSD is different from original due to how the solve_bvp function works - same mathematical operations 
       def MSDAccuracy_DE(t, y):
-        p = 6
+        p = 6 #default is 6
         dydt = np.zeros(np.shape(y))
         for i in range (len(t)):
           dydt[0, i] = y[1, i]

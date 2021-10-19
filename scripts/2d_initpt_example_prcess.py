@@ -41,8 +41,8 @@ def main():
     [x, y] = get_lasa_traj1(lasa_name)
     traj = np.hstack((x, y))
     
-    ## set up Meta-Learning from Demonstration Object
-    my_mlfd = mlfd.metalfd()
+    ## set up SAMLfD Object
+    my_mlfd = mlfd.SAMLfD()
     my_mlfd.add_traj(traj)
     my_mlfd.add_representation(ja.perform_ja_general, 'JA')
     my_mlfd.add_representation(lte.LTE_ND_any_constraints, 'LTE')
