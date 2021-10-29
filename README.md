@@ -3,7 +3,7 @@ Implementation of Similarity-Aware Multi-representational Learning from Demonstr
  
 Mantained by Brendan Hertel (brendan_hertel@student.uml.edu).
  
-This code follows the implementation proposed by the paper "Similarity-Aware Skill Reproduction based on Multi-Representational Learning from Demonstrations" by Brendan Hertel and Reza Ahmadzadeh, which can be seen here : N/A <insert link>
+This code follows the implementation proposed by the paper "Similarity-Aware Skill Reproduction based on Multi-Representational Learning from Demonstrations" by Brendan Hertel and Reza Ahmadzadeh, which can be seen here : https://arxiv.org/abs/2110.14817
  
 An image of the framework process can be seen below:
 
