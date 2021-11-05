@@ -9,6 +9,17 @@ An image of the framework process can be seen below:
 
 ![Framework](https://github.com/brenhertel/Meta-LfD/blob/master/.media/mlfd_flowchart_updated_3d_v2.png)
 
+If you use the code present in this repository, please cite the following paper:
+```
+@inproceedings{hertel2021SAMLfD,
+  title={Similarity-Aware Skill Reproduction based on Multi-Representational Learning from Demonstrations},
+  author={Brendan Hertel and S. Reza Ahmadzadeh},
+  booktitle={20th International Conference on Advanced Robotics (ICAR)},
+  year={2021},
+  organization={IEEE}
+}
+```
+
 The key steps as implemented in code are explained below:
 
 1. Setup
