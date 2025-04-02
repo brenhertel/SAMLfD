@@ -14,8 +14,9 @@ If you use the code present in this repository, please cite the following paper:
 @inproceedings{hertel2021SAMLfD,
   title={Similarity-Aware Skill Reproduction based on Multi-Representational Learning from Demonstrations},
   author={Brendan Hertel and S. Reza Ahmadzadeh},
-  booktitle={20th International Conference on Advanced Robotics (ICAR)},
+  booktitle={2021 20th International Conference on Advanced Robotics (ICAR)},
   year={2021},
+  pages={652--657},
   organization={IEEE}
 }
 ```
